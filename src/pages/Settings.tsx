@@ -148,12 +148,17 @@ export default function Settings() {
           <h2 className="text-lg font-semibold text-gray-800">AI Analysis</h2>
         </div>
         <p className="text-sm text-gray-500">
-          Enter your Google Gemini API key to enable automatic asset identification from photos.
-          Get a free key at{' '}
-          <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
-            aistudio.google.com/apikey
-          </a>
+          Enable AI to automatically identify assets from photos. Gemini API is <strong className="text-green-600">100% free</strong> - no credit card needed.
         </p>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+          <p className="font-medium mb-1">How to get your free API key (30 seconds):</p>
+          <ol className="list-decimal ml-4 space-y-0.5 text-blue-700">
+            <li>Open{' '}<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" className="underline font-medium">aistudio.google.com/apikey</a></li>
+            <li>Sign in with your Google account</li>
+            <li>Click "Create API Key"</li>
+            <li>Copy and paste it below</li>
+          </ol>
+        </div>
         <div className="relative">
           <input
             type={showKey ? 'text' : 'password'}
