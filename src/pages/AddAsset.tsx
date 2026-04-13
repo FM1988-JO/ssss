@@ -68,8 +68,8 @@ export default function AddAsset() {
   };
 
   const handleAnalyze = async () => {
-    if (!settings.geminiApiKey) {
-      setAiError('No API key. Go to Settings to add your Gemini API key.');
+    if (!settings.aiApiKey) {
+      setAiError('No API key. Go to Settings to add your free AI key.');
       return;
     }
     const photo = photos[0];
@@ -78,7 +78,7 @@ export default function AddAsset() {
     setAnalyzing(true);
     setAiError(null);
     try {
-      const result = await analyzeAssetPhoto(photo.dataUrl, settings.geminiApiKey);
+      const result = await analyzeAssetPhoto(photo.dataUrl, settings.aiApiKey, settings.aiProvider);
       setForm((f) => ({
         ...f,
         name: result.name || f.name,
@@ -258,10 +258,10 @@ export default function AddAsset() {
                       AI detected: {form.name || 'Unknown'} ({form.brand} {form.model}). You can edit details in the next steps.
                     </p>
                   )}
-                  {!settings.geminiApiKey && !aiError && (
+                  {!settings.aiApiKey && !aiError && (
                     <p className="text-xs text-gray-400 text-center">
-                      Add your Gemini API key in{' '}
-                      <a href="/settings" className="text-primary-600 hover:underline">Settings</a>
+                      Add your free AI key in{' '}
+                      <a href="#/settings" className="text-primary-600 hover:underline">Settings</a>
                       {' '}to enable AI analysis.
                     </p>
                   )}

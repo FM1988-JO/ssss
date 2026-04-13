@@ -11,7 +11,8 @@ export default function Settings() {
   const [locations, setLocations] = useState([...settings.locations]);
   const [newDept, setNewDept] = useState('');
   const [newLoc, setNewLoc] = useState('');
-  const [geminiKey, setGeminiKey] = useState(settings.geminiApiKey || '');
+  const [aiProvider, setAiProvider] = useState(settings.aiProvider || 'huggingface');
+  const [aiKey, setAiKey] = useState(settings.aiApiKey || '');
   const [showKey, setShowKey] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -43,7 +44,8 @@ export default function Settings() {
       defaultCurrency: currency.trim() || 'SAR',
       departments,
       locations,
-      geminiApiKey: geminiKey.trim(),
+      aiProvider: aiProvider as 'huggingface' | 'gemini',
+      aiApiKey: aiKey.trim(),
     });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
@@ -148,23 +150,65 @@ export default function Settings() {
           <h2 className="text-lg font-semibold text-gray-800">AI Analysis</h2>
         </div>
         <p className="text-sm text-gray-500">
-          Enable AI to automatically identify assets from photos. Gemini API is <strong className="text-green-600">100% free</strong> - no credit card needed.
+          Enable AI to automatically identify assets from photos. <strong className="text-green-600">100% free</strong> - no credit card needed.
         </p>
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
-          <p className="font-medium mb-1">How to get your free API key (30 seconds):</p>
-          <ol className="list-decimal ml-4 space-y-0.5 text-blue-700">
-            <li>Open{' '}<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" className="underline font-medium">aistudio.google.com/apikey</a></li>
-            <li>Sign in with your Google account</li>
-            <li>Click "Create API Key"</li>
-            <li>Copy and paste it below</li>
-          </ol>
+
+        {/* Provider selection */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => setAiProvider('huggingface')}
+            className={`flex-1 px-4 py-2.5 rounded-lg border-2 text-sm font-medium transition-colors ${
+              aiProvider === 'huggingface'
+                ? 'border-purple-500 bg-purple-50 text-purple-700'
+                : 'border-gray-200 text-gray-600 hover:border-gray-300'
+            }`}
+          >
+            Hugging Face (Free)
+          </button>
+          <button
+            onClick={() => setAiProvider('gemini')}
+            className={`flex-1 px-4 py-2.5 rounded-lg border-2 text-sm font-medium transition-colors ${
+              aiProvider === 'gemini'
+                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                : 'border-gray-200 text-gray-600 hover:border-gray-300'
+            }`}
+          >
+            Google Gemini
+          </button>
         </div>
+
+        {/* Instructions */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+          {aiProvider === 'huggingface' ? (
+            <>
+              <p className="font-medium mb-1">Get free Hugging Face token (30 seconds):</p>
+              <ol className="list-decimal ml-4 space-y-0.5 text-blue-700">
+                <li>Open{' '}<a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener noreferrer" className="underline font-medium">huggingface.co/settings/tokens</a></li>
+                <li>Create a free account (no credit card)</li>
+                <li>Click "Create new token" &gt; choose "Read"</li>
+                <li>Copy and paste it below</li>
+              </ol>
+            </>
+          ) : (
+            <>
+              <p className="font-medium mb-1">Get Gemini API key:</p>
+              <ol className="list-decimal ml-4 space-y-0.5 text-blue-700">
+                <li>Open{' '}<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" className="underline font-medium">aistudio.google.com/apikey</a></li>
+                <li>Sign in with Google</li>
+                <li>Click "Create API Key"</li>
+                <li>Copy and paste it below</li>
+              </ol>
+            </>
+          )}
+        </div>
+
+        {/* API Key input */}
         <div className="relative">
           <input
             type={showKey ? 'text' : 'password'}
-            value={geminiKey}
-            onChange={(e) => setGeminiKey(e.target.value)}
-            placeholder="AIza..."
+            value={aiKey}
+            onChange={(e) => setAiKey(e.target.value)}
+            placeholder={aiProvider === 'huggingface' ? 'hf_...' : 'AIza...'}
             className="w-full px-3 py-2 pr-10 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono"
           />
           <button
@@ -174,7 +218,7 @@ export default function Settings() {
             {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </button>
         </div>
-        {geminiKey && (
+        {aiKey && (
           <p className="text-xs text-success-500">API key configured. AI analysis is enabled.</p>
         )}
       </div>

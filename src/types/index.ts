@@ -87,7 +87,8 @@ export interface AppSettings {
   locations: string[];
   defaultCurrency: string;
   companyName: string;
-  geminiApiKey: string;
+  aiProvider: 'huggingface' | 'gemini';
+  aiApiKey: string;
 }
 
 export interface SubcategoryTemplate {
