@@ -87,7 +87,7 @@ export interface AppSettings {
   locations: string[];
   defaultCurrency: string;
   companyName: string;
-  aiProvider: 'huggingface' | 'gemini';
+  aiProvider: 'claude' | 'chatgpt' | 'huggingface' | 'gemini';
   aiApiKey: string;
 }
 

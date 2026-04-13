@@ -22,6 +22,6 @@ export const defaultSettings: AppSettings = {
   ],
   defaultCurrency: 'SAR',
   companyName: 'My Company',
-  aiProvider: 'huggingface',
+  aiProvider: 'claude',
   aiApiKey: '',
 };

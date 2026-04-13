@@ -44,7 +44,7 @@ export default function Settings() {
       defaultCurrency: currency.trim() || 'SAR',
       departments,
       locations,
-      aiProvider: aiProvider as 'huggingface' | 'gemini',
+      aiProvider: aiProvider as 'claude' | 'chatgpt' | 'huggingface' | 'gemini',
       aiApiKey: aiKey.trim(),
     });
     setSaved(true);
@@ -154,38 +154,69 @@ export default function Settings() {
         </p>
 
         {/* Provider selection */}
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => setAiProvider('claude')}
+            className={`px-4 py-2.5 rounded-lg border-2 text-sm font-medium transition-colors ${
+              aiProvider === 'claude'
+                ? 'border-orange-500 bg-orange-50 text-orange-700'
+                : 'border-gray-200 text-gray-600 hover:border-gray-300'
+            }`}
+          >
+            Claude
+          </button>
+          <button
+            onClick={() => setAiProvider('chatgpt')}
+            className={`px-4 py-2.5 rounded-lg border-2 text-sm font-medium transition-colors ${
+              aiProvider === 'chatgpt'
+                ? 'border-green-500 bg-green-50 text-green-700'
+                : 'border-gray-200 text-gray-600 hover:border-gray-300'
+            }`}
+          >
+            ChatGPT
+          </button>
           <button
             onClick={() => setAiProvider('huggingface')}
-            className={`flex-1 px-4 py-2.5 rounded-lg border-2 text-sm font-medium transition-colors ${
+            className={`px-4 py-2.5 rounded-lg border-2 text-sm font-medium transition-colors ${
               aiProvider === 'huggingface'
                 ? 'border-purple-500 bg-purple-50 text-purple-700'
                 : 'border-gray-200 text-gray-600 hover:border-gray-300'
             }`}
           >
-            Hugging Face (Free)
+            Hugging Face
           </button>
           <button
             onClick={() => setAiProvider('gemini')}
-            className={`flex-1 px-4 py-2.5 rounded-lg border-2 text-sm font-medium transition-colors ${
+            className={`px-4 py-2.5 rounded-lg border-2 text-sm font-medium transition-colors ${
               aiProvider === 'gemini'
                 ? 'border-blue-500 bg-blue-50 text-blue-700'
                 : 'border-gray-200 text-gray-600 hover:border-gray-300'
             }`}
           >
-            Google Gemini
+            Gemini
           </button>
         </div>
 
         {/* Instructions */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
-          {aiProvider === 'huggingface' ? (
+          {(aiProvider === 'claude' || aiProvider === 'chatgpt') ? (
             <>
-              <p className="font-medium mb-1">Get free Hugging Face token (30 seconds):</p>
+              <p className="font-medium mb-1">Get free OpenRouter key (gives you {aiProvider === 'claude' ? 'Claude' : 'ChatGPT'}):</p>
+              <ol className="list-decimal ml-4 space-y-0.5 text-blue-700">
+                <li>Open{' '}<a href="https://openrouter.ai/settings/keys" target="_blank" rel="noopener noreferrer" className="underline font-medium">openrouter.ai/settings/keys</a></li>
+                <li>Sign up free (Google login works)</li>
+                <li>Click "Create Key"</li>
+                <li>Copy and paste it below</li>
+              </ol>
+              <p className="mt-1 text-xs text-blue-600">New accounts get free credits. One key works for both Claude and ChatGPT.</p>
+            </>
+          ) : aiProvider === 'huggingface' ? (
+            <>
+              <p className="font-medium mb-1">Get free Hugging Face token:</p>
               <ol className="list-decimal ml-4 space-y-0.5 text-blue-700">
                 <li>Open{' '}<a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener noreferrer" className="underline font-medium">huggingface.co/settings/tokens</a></li>
-                <li>Create a free account (no credit card)</li>
-                <li>Click "Create new token" &gt; choose "Read"</li>
+                <li>Create free account</li>
+                <li>Click "Create new token" &gt; "Read"</li>
                 <li>Copy and paste it below</li>
               </ol>
             </>
@@ -208,7 +239,7 @@ export default function Settings() {
             type={showKey ? 'text' : 'password'}
             value={aiKey}
             onChange={(e) => setAiKey(e.target.value)}
-            placeholder={aiProvider === 'huggingface' ? 'hf_...' : 'AIza...'}
+            placeholder={aiProvider === 'huggingface' ? 'hf_...' : aiProvider === 'gemini' ? 'AIza...' : 'sk-or-...'}
             className="w-full px-3 py-2 pr-10 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono"
           />
           <button

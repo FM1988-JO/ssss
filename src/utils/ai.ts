@@ -1,5 +1,7 @@
 import type { AssetCategory, AssetCondition } from '../types';
 
+export type AIProvider = 'claude' | 'chatgpt' | 'huggingface' | 'gemini';
+
 export interface AIAnalysisResult {
   name: string;
   category: AssetCategory;
@@ -39,15 +41,73 @@ Rules:
 export async function analyzeAssetPhoto(
   imageDataUrl: string,
   apiKey: string,
-  provider: 'huggingface' | 'gemini' = 'huggingface',
+  provider: AIProvider = 'claude',
 ): Promise<AIAnalysisResult> {
   const base64Match = imageDataUrl.match(/^data:image\/(\w+);base64,(.+)$/);
   if (!base64Match) throw new Error('Invalid image data');
 
+  if (provider === 'claude') {
+    return analyzeWithOpenRouter(imageDataUrl, apiKey, 'anthropic/claude-sonnet-4');
+  }
+  if (provider === 'chatgpt') {
+    return analyzeWithOpenRouter(imageDataUrl, apiKey, 'openai/gpt-4o-mini');
+  }
   if (provider === 'gemini') {
     return analyzeWithGemini(base64Match[1], base64Match[2], apiKey);
   }
   return analyzeWithHuggingFace(imageDataUrl, apiKey);
+}
+
+// Claude & ChatGPT via OpenRouter (free credits, browser-compatible)
+async function analyzeWithOpenRouter(
+  imageDataUrl: string,
+  apiKey: string,
+  model: string,
+): Promise<AIAnalysisResult> {
+  const response = await fetch(
+    'https://openrouter.ai/api/v1/chat/completions',
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: PROMPT },
+              { type: 'image_url', image_url: { url: imageDataUrl } },
+            ],
+          },
+        ],
+        max_tokens: 500,
+        temperature: 0.1,
+      }),
+    },
+  );
+
+  if (!response.ok) {
+    const err = await response.text();
+    if (response.status === 401 || response.status === 403) {
+      throw new Error('Invalid API key. Check your OpenRouter key in Settings.');
+    }
+    if (response.status === 402) {
+      throw new Error('No credits. Add free credits at openrouter.ai/credits');
+    }
+    if (response.status === 429) {
+      throw new Error('Rate limit. Wait a moment and try again.');
+    }
+    throw new Error(`AI error: ${err}`);
+  }
+
+  const data = await response.json();
+  const text = data?.choices?.[0]?.message?.content;
+  if (!text) throw new Error('No response from AI');
+
+  return parseAIResponse(text);
 }
 
 async function analyzeWithHuggingFace(
@@ -82,7 +142,7 @@ async function analyzeWithHuggingFace(
   if (!response.ok) {
     const err = await response.text();
     if (response.status === 401 || response.status === 403) {
-      throw new Error('Invalid API key. Check your Hugging Face token in Settings.');
+      throw new Error('Invalid token. Check your Hugging Face token in Settings.');
     }
     if (response.status === 429) {
       throw new Error('Rate limit reached. Wait a minute and try again.');
@@ -121,9 +181,9 @@ async function analyzeWithGemini(
 
   if (!response.ok) {
     if (response.status === 400 || response.status === 403) {
-      throw new Error('Invalid API key. Check your Gemini API key in Settings.');
+      throw new Error('Invalid API key. Check your Gemini key in Settings.');
     }
-    throw new Error(`Gemini API error: ${await response.text()}`);
+    throw new Error(`Gemini error: ${await response.text()}`);
   }
 
   const data = await response.json();
