@@ -1,6 +1,6 @@
 import type { AssetCategory, AssetCondition } from '../types';
 
-export type AIProvider = 'claude' | 'chatgpt' | 'huggingface' | 'gemini';
+export type AIProvider = 'groq' | 'claude' | 'chatgpt' | 'huggingface' | 'gemini';
 
 export interface AIAnalysisResult {
   name: string;
@@ -46,6 +46,9 @@ export async function analyzeAssetPhoto(
   const base64Match = imageDataUrl.match(/^data:image\/(\w+);base64,(.+)$/);
   if (!base64Match) throw new Error('Invalid image data');
 
+  if (provider === 'groq') {
+    return analyzeWithGroq(imageDataUrl, apiKey);
+  }
   if (provider === 'claude') {
     return analyzeWithOpenRouter(imageDataUrl, apiKey, 'anthropic/claude-sonnet-4');
   }
@@ -56,6 +59,54 @@ export async function analyzeAssetPhoto(
     return analyzeWithGemini(base64Match[1], base64Match[2], apiKey);
   }
   return analyzeWithHuggingFace(imageDataUrl, apiKey);
+}
+
+// Groq - 100% free, no credit card
+async function analyzeWithGroq(
+  imageDataUrl: string,
+  apiKey: string,
+): Promise<AIAnalysisResult> {
+  const response = await fetch(
+    'https://api.groq.com/openai/v1/chat/completions',
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'llama-3.2-90b-vision-preview',
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: PROMPT },
+              { type: 'image_url', image_url: { url: imageDataUrl } },
+            ],
+          },
+        ],
+        max_tokens: 500,
+        temperature: 0.1,
+      }),
+    },
+  );
+
+  if (!response.ok) {
+    const err = await response.text();
+    if (response.status === 401) {
+      throw new Error('Invalid API key. Check your Groq key in Settings.');
+    }
+    if (response.status === 429) {
+      throw new Error('Rate limit. Wait a moment and try again.');
+    }
+    throw new Error(`Groq error: ${err}`);
+  }
+
+  const data = await response.json();
+  const text = data?.choices?.[0]?.message?.content;
+  if (!text) throw new Error('No response from AI');
+
+  return parseAIResponse(text);
 }
 
 // Claude & ChatGPT via OpenRouter (free credits, browser-compatible)
