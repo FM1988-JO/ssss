@@ -234,7 +234,10 @@ async function analyzeWithGemini(
     if (response.status === 400 || response.status === 403) {
       throw new Error('Invalid API key. Check your Gemini key in Settings.');
     }
-    throw new Error(`Gemini error: ${await response.text()}`);
+    if (response.status === 429) {
+      throw new Error('Gemini free tier not available in your region. Please switch to Groq in Settings - it works everywhere.');
+    }
+    throw new Error('Gemini failed. Try switching to Groq in Settings.');
   }
 
   const data = await response.json();
